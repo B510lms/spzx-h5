@@ -1,0 +1,295 @@
+/* ==========================================
+   spzx-h5 全局样式系统
+   参照 wise-match-mini 设计系统结构
+   ========================================== */
+
+// ========== 设计变量 ==========
+
+/* uView Plus 主题色 */
+$u-primary: #E4393C;
+$u-warning: #FF9900;
+$u-success: #19BE6B;
+$u-error: #FA3534;
+$u-info: #909399;
+$u-main-color: #303133;
+$u-content-color: #606266;
+$u-tips-color: #909399;
+$u-light-color: #C0C4CC;
+$u-border-color: #E4E7ED;
+$u-bg-color: #F5F5F5;
+
+// ========== 字号系统 ==========
+$fs-xs: 20rpx;
+$fs-sm: 24rpx;
+$fs-md: 28rpx;
+$fs-lg: 32rpx;
+$fs-xl: 36rpx;
+$fs-2xl: 40rpx;
+
+// ========== 间距系统 ==========
+$spacing-xs: 8rpx;
+$spacing-sm: 12rpx;
+$spacing-md: 16rpx;
+$spacing-lg: 24rpx;
+$spacing-xl: 32rpx;
+$spacing-2xl: 48rpx;
+
+// ========== 圆角 ==========
+$radius-sm: 8rpx;
+$radius-md: 16rpx;
+$radius-lg: 24rpx;
+$radius-round: 9999rpx;
+
+/* 引入 uView Plus 全局样式 */
+@import 'uview-plus/index.scss';
+
+// ========== 全局重置 ==========
+page {
+  background-color: #F5F5F5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+view {
+  box-sizing: border-box;
+}
+
+image {
+  display: block;
+}
+
+// ========== 文字颜色工具类 ==========
+.text-primary { color: $u-primary; }
+.text-warning { color: $u-warning; }
+.text-success { color: $u-success; }
+.text-info { color: $u-info; }
+.text-muted { color: $u-tips-color; }
+.text-main { color: $u-main-color; }
+.text-content { color: $u-content-color; }
+.text-light { color: $u-light-color; }
+.text-white { color: #fff; }
+
+// ========== 字号工具类 ==========
+.fs-xs { font-size: $fs-xs; }
+.fs-sm { font-size: $fs-sm; }
+.fs-md { font-size: $fs-md; }
+.fs-lg { font-size: $fs-lg; }
+.fs-xl { font-size: $fs-xl; }
+.fs-2xl { font-size: $fs-2xl; }
+
+// ========== 字重 ==========
+.fw-normal { font-weight: 400; }
+.fw-medium { font-weight: 500; }
+.fw-bold { font-weight: 700; }
+
+// ========== 文字对齐 ==========
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+// ========== 文字省略 ==========
+.text-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.text-ellipsis-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+// ========== Flex 布局工具类 ==========
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-1 { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-around {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-center { align-items: center; }
+.items-stretch { align-items: stretch; }
+
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+// ========== 间距工具类 ==========
+// Margin Top
+.mt-0 { margin-top: 0; }
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+.mt-2xl { margin-top: $spacing-2xl; }
+
+// Margin Bottom
+.mb-0 { margin-bottom: 0; }
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+.mb-2xl { margin-bottom: $spacing-2xl; }
+
+// Margin Left
+.ml-xs { margin-left: $spacing-xs; }
+.ml-sm { margin-left: $spacing-sm; }
+.ml-md { margin-left: $spacing-md; }
+.ml-lg { margin-left: $spacing-lg; }
+
+// Margin Right
+.mr-xs { margin-right: $spacing-xs; }
+.mr-sm { margin-right: $spacing-sm; }
+.mr-md { margin-right: $spacing-md; }
+.mr-lg { margin-right: $spacing-lg; }
+
+// Padding X (水平)
+.px-sm { padding-left: $spacing-sm; padding-right: $spacing-sm; }
+.px-md { padding-left: $spacing-md; padding-right: $spacing-md; }
+.px-lg { padding-left: $spacing-lg; padding-right: $spacing-lg; }
+
+// Padding Y (垂直)
+.py-xs { padding-top: $spacing-xs; padding-bottom: $spacing-xs; }
+.py-sm { padding-top: $spacing-sm; padding-bottom: $spacing-sm; }
+.py-md { padding-top: $spacing-md; padding-bottom: $spacing-md; }
+.py-lg { padding-top: $spacing-lg; padding-bottom: $spacing-lg; }
+
+// Padding All
+.p-sm { padding: $spacing-sm; }
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+
+// ========== 圆角 ==========
+.radius-sm { border-radius: $radius-sm; }
+.radius-md { border-radius: $radius-md; }
+.radius-lg { border-radius: $radius-lg; }
+.radius-round { border-radius: $radius-round; }
+
+// ========== 背景色 ==========
+.bg-white { background-color: #fff; }
+.bg-page { background-color: $u-bg-color; }
+.bg-primary { background-color: $u-primary; }
+.bg-light { background-color: $u-light-color; }
+
+// ========== 边框 ==========
+.border { border: 1px solid $u-border-color; }
+.border-t { border-top: 1px solid $u-border-color; }
+.border-b { border-bottom: 1px solid $u-border-color; }
+
+// ========== 价格颜色 ==========
+.price-red {
+  color: $u-primary;
+}
+
+// ========== 阴影 ==========
+.shadow-sm { box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05); }
+.shadow-md { box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1); }
+
+// ========== 容器 ==========
+.container {
+  padding: 0 $spacing-md;
+}
+
+// ========== 固定底部按钮 ==========
+.fixed-bottom-button {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-md;
+  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  background: #fff;
+  z-index: 100;
+}
+
+// ========== 安全区域 ==========
+.safe-area-bottom {
+  height: env(safe-area-inset-bottom);
+  min-height: 20rpx;
+}
+
+// ========== 按钮样式 ==========
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  background: $u-primary;
+  color: #fff;
+  border-radius: $radius-md;
+  font-size: $fs-md;
+  font-weight: 500;
+  border: none;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  background: transparent;
+  color: $u-primary;
+  border: 1px solid $u-primary;
+  border-radius: $radius-md;
+  font-size: $fs-md;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+// ========== 分隔线 ==========
+.divider {
+  height: 1px;
+  background: $u-border-color;
+  margin: $spacing-md 0;
+}
+
+// ========== 重置 uview-plus 部分样式 ==========
+// 这里可以覆盖 uview-plus 默认样式
