@@ -23,21 +23,19 @@
       </swiper-item>
     </swiper>
 
-    <!-- 分类导航 -->
-    <view class="index-category">
-      <scroll-view scroll-x class="index-category__scroll">
-        <view class="index-category__list">
-          <view
-            v-for="item in categoryList"
-            :key="item.id"
-            class="index-category__item"
-            @click="goCategory(item.id)"
-          >
-            <image :src="item.imageUrl || defaultCateImg" mode="aspectFill" class="index-category__icon" />
-            <text class="index-category__name">{{ item.name }}</text>
-          </view>
+    <!-- 导航入口 -->
+    <view class="index-nav">
+      <view class="index-nav__list">
+        <view
+          v-for="item in navList"
+          :key="item.id"
+          class="index-nav__item"
+          @click="goProductListByNav(item)"
+        >
+          <image :src="item.imageUrl || defaultNavImg" mode="aspectFill" class="index-nav__icon" />
+          <text class="index-nav__name">{{ item.name }}</text>
         </view>
-      </scroll-view>
+      </view>
     </view>
 
     <!-- 广告图 -->
@@ -58,7 +56,7 @@
       </view>
 
       <!-- 商品列表 -->
-      <goods-list
+      <GoodsList
         :list="hotProducts"
         :columns="2"
       />
@@ -94,11 +92,11 @@ const banners = ref([
   '/static/images/temp/banner4.jpg'
 ])
 
-// 分类列表
-const categoryList = ref<CategoryNode[]>([])
+// 导航入口列表
+const navList = ref<CategoryNode[]>([])
 
-// 默认分类图
-const defaultCateImg = '/static/images/temp/cate1.jpg'
+// 默认导航图标
+const defaultNavImg = '/static/images/temp/cate1.jpg'
 
 // 广告图
 const adImage = ref('/static/images/temp/ad1.jpg')
@@ -115,7 +113,7 @@ async function loadIndexData() {
   try {
     const data = await getIndexData()
     if (data) {
-      categoryList.value = data.categoryList || []
+      navList.value = data.categoryList || []
 
       // 处理商品 SKU 列表
       const skuList = data.productSkuList || []
@@ -138,9 +136,11 @@ function goSearch() {
   uni.navigateTo({ url: '/pages/search/index' })
 }
 
-// 跳转分类
-function goCategory(categoryId: number | string) {
-  uni.switchTab({ url: '/pages/category/category' })
+// 跳转到商品列表（按导航入口）
+function goProductListByNav(item: { id: number | string; name: string }) {
+  uni.navigateTo({
+    url: `/pages/product/list?category1Id=${item.id}&title=${encodeURIComponent(item.name)}`
+  })
 }
 
 // 跳转商品列表
@@ -200,24 +200,21 @@ defineExpose({ onPullDownRefresh })
   }
 }
 
-.index-category {
+.index-nav {
   background: #FFFFFF;
-  padding: 24rpx 16rpx;
-
-  &__scroll {
-    white-space: nowrap;
-  }
+  padding: 24rpx 0;
 
   &__list {
-    display: inline-flex;
+    display: flex;
+    flex-wrap: wrap;
   }
 
   &__item {
-    display: inline-flex;
+    display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 16rpx;
-    width: 110rpx;
+    width: 20%;
+    margin-bottom: 20rpx;
   }
 
   &__icon {
