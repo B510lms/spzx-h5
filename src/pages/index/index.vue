@@ -59,6 +59,8 @@
       <GoodsList
         :list="hotProducts"
         :columns="2"
+        :show-load-more="false"
+        :show-empty="false"
       />
     </view>
 
@@ -68,8 +70,6 @@
       <text class="index-loading__text">加载中...</text>
     </view>
 
-    <!-- 底部安全距离 -->
-    <view class="safe-area-bottom" />
   </view>
 </template>
 
@@ -248,7 +248,7 @@ defineExpose({ onPullDownRefresh })
   background: #FFFFFF;
 
   &__header {
-    padding: 24rpx 20rpx 0;
+    padding: 24rpx 20rpx;
   }
 
   &__title-text {
@@ -283,7 +283,4 @@ defineExpose({ onPullDownRefresh })
   }
 }
 
-.safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0);
-}
 </style>

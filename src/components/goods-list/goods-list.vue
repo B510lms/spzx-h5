@@ -18,7 +18,7 @@
     </view>
 
     <!-- 加载更多状态 -->
-    <view class="goods-list__load-more" v-if="list.length > 0">
+    <view class="goods-list__load-more" v-if="showLoadMore && list.length > 0">
       <u-loadmore
         :status="loadStatus"
         loading-text="加载中..."
@@ -28,7 +28,7 @@
     </view>
 
     <!-- 空状态 -->
-    <no-data v-if="list.length === 0 && !loading" text="暂无商品" />
+    <no-data v-if="showEmpty && list.length === 0 && !loading" text="暂无商品" />
   </view>
 </template>
 
@@ -71,6 +71,16 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  // 是否显示加载更多
+  showLoadMore: {
+    type: Boolean,
+    default: true
+  },
+  // 是否显示空状态
+  showEmpty: {
+    type: Boolean,
+    default: true
   }
 })
 
@@ -81,7 +91,7 @@ const columnClass = computed(() => {
 
 <style lang="scss" scoped>
 .goods-list {
-  padding: 20rpx;
+  padding: 0 20rpx;
 
   &__grid {
     display: flex;

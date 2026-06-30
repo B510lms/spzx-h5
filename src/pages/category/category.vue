@@ -1,16 +1,8 @@
 <template>
   <view class="page-category">
-    <!-- 自定义导航栏 -->
-    <view class="category-navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
-      <view class="category-navbar__search" @click="goSearch">
-        <u-icon name="search" size="16" color="#999" />
-        <text class="category-navbar__search-text">搜索商品</text>
-      </view>
-    </view>
-
-    <view class="category-container" :style="{ height: containerHeight + 'px' }">
+    <view class="category-container">
       <!-- 左侧一级分类 -->
-      <scroll-view scroll-y class="category-left">
+      <view class="category-left">
         <view
           v-for="item in categoryList"
           :key="item.id"
@@ -20,23 +12,24 @@
         >
           <text class="category-left__name">{{ item.name }}</text>
         </view>
-      </scroll-view>
+      </view>
 
       <!-- 右侧二级和三级分类 -->
-      <scroll-view scroll-y class="category-right">
+      <scroll-view
+        scroll-y
+        class="category-right"
+        :scroll-top="rightScrollTop"
+      >
         <view v-if="currentCategory">
-          <!-- 遍历二级分类 -->
           <view
             v-for="sub in currentCategory.children"
             :key="sub.id"
             class="category-right__group"
           >
-            <!-- 二级分类标题 -->
             <view class="category-right__title">
               <text class="category-right__title-text">{{ sub.name }}</text>
             </view>
 
-            <!-- 三级分类网格 -->
             <view class="category-right__grid" v-if="sub.children && sub.children.length > 0">
               <view
                 v-for="third in sub.children"
@@ -53,54 +46,36 @@
               </view>
             </view>
 
-            <!-- 无三级分类 -->
             <view v-else class="category-right__empty">
               <text class="category-right__empty-text">暂无子分类</text>
             </view>
           </view>
         </view>
 
-        <!-- 加载中 -->
         <view class="category-right__loading" v-if="loading">
           <u-loading-icon />
         </view>
       </scroll-view>
     </view>
-
-    <!-- 底部安全距离 -->
-    <view class="safe-area-bottom" />
   </view>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useAppStore } from '@/store/app'
 import { getCategoryTree } from '@/api/product'
 import type { CategoryNode } from '@/api/product/type'
-
-const appStore = useAppStore()
-const statusBarHeight = appStore.statusBarHeight || 20
-const navBarHeight = appStore.navBarHeight || 44
 
 const categoryList = ref<CategoryNode[]>([])
 const currentId = ref<number | string | null>(null)
 const loading = ref(false)
+const rightScrollTop = ref(0)
 
 const defaultCateImg = '/static/images/temp/cate1.jpg'
 
-// 当前选中的一级分类
 const currentCategory = computed(() => {
   return categoryList.value.find(item => item.id === currentId.value)
 })
 
-// 容器高度
-const containerHeight = computed(() => {
-  const sysInfo = uni.getSystemInfoSync()
-  const navTotal = statusBarHeight + navBarHeight
-  return sysInfo.windowHeight - navTotal - 50
-})
-
-// 加载分类数据
 async function loadCategories() {
   loading.value = true
   try {
@@ -116,17 +91,12 @@ async function loadCategories() {
   }
 }
 
-// 选择一级分类
 function selectCategory(item: CategoryNode) {
   currentId.value = item.id
+  // 切换分类后右侧滚动到顶部
+  rightScrollTop.value = rightScrollTop.value === 0 ? 1 : 0
 }
 
-// 跳转搜索
-function goSearch() {
-  uni.navigateTo({ url: '/pages/search/index' })
-}
-
-// 跳转商品列表（三级分类）
 function goProductList(category3Id: number | string, categoryName: string) {
   uni.navigateTo({
     url: `/pages/product/list?category3Id=${category3Id}&title=${encodeURIComponent(categoryName)}`
@@ -140,39 +110,26 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .page-category {
-  background: #FFFFFF;
-  min-height: 100vh;
-}
-
-.category-navbar {
-  background: #FFFFFF;
-  padding: 0 30rpx 16rpx;
-  position: sticky;
+  position: absolute;
   top: 0;
-  z-index: 99;
-
-  &__search {
-    display: flex;
-    align-items: center;
-    background: #F5F5F5;
-    border-radius: 36rpx;
-    padding: 14rpx 24rpx;
-  }
-
-  &__search-text {
-    font-size: 26rpx;
-    color: #999;
-    margin-left: 12rpx;
-  }
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
 }
 
 .category-container {
+  flex: 1;
   display: flex;
+  overflow: hidden;
 }
 
 .category-left {
   width: 180rpx;
-  background: #F5F5F5;
+  height: 100%;
+  background: #FFFFFF;
 
   &__item {
     padding: 30rpx 16rpx;
@@ -183,7 +140,7 @@ onMounted(() => {
     transition: all 0.3s;
 
     &--active {
-      background: #FFFFFF;
+      background: #F5F5F5;
       border-left-color: #E4393C;
 
       .category-left__name {
@@ -202,6 +159,7 @@ onMounted(() => {
 
 .category-right {
   flex: 1;
+  height: 100%;
   background: #FFFFFF;
   padding: 20rpx;
 
@@ -264,8 +222,11 @@ onMounted(() => {
     padding: 100rpx 0;
   }
 }
+</style>
 
-.safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0);
+<style>
+/* 隐藏 uni-app tabBar 自动注入的底部占位，分类页自行管理布局 */
+uni-page-wrapper::after {
+  display: none !important;
 }
 </style>

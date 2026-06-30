@@ -1,5 +1,5 @@
 <template>
-  <view class="page-user">
+  <scroll-view scroll-y class="page-user" :style="{ height: scrollHeight + 'px' }">
     <!-- 头部背景 -->
     <view class="user-header" :style="{ paddingTop: statusBarHeight + 'px' }">
       <image src="/static/images/user-bg.jpg" mode="aspectFill" class="user-header__bg" />
@@ -84,8 +84,7 @@
       <button class="user-logout__btn" @click="handleLogout">退出登录</button>
     </view>
 
-    <view class="safe-area-bottom" />
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -100,6 +99,9 @@ const appStore = useAppStore()
 const cartStore = useCartStore()
 
 const statusBarHeight = appStore.statusBarHeight || 20
+
+// 滚动区域高度：windowHeight 已排除 tabBar，无需再减
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 // 跳转登录
 function goLogin() {
@@ -180,7 +182,7 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-user {
   background: #F5F5F5;
-  min-height: 100vh;
+  // height is set dynamically via JS (windowHeight)
 }
 
 .user-header {
@@ -312,7 +314,4 @@ onShow(() => {
   }
 }
 
-.safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0);
-}
 </style>

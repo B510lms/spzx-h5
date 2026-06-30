@@ -10,7 +10,8 @@
 
     <!-- 购物车列表 -->
     <template v-else>
-      <view class="cart-list">
+      <scroll-view scroll-y class="cart-scroll" :style="{ height: scrollHeight + 'px' }">
+        <view class="cart-list">
         <view
           v-for="item in cartStore.cartList"
           :key="item.id || item.skuId"
@@ -58,7 +59,8 @@
             <u-icon name="trash" size="18" color="#C0C4CC" />
           </view>
         </view>
-      </view>
+        </view>
+      </scroll-view>
 
       <!-- 底部结算栏 -->
       <view class="cart-bottom">
@@ -86,13 +88,11 @@
       </view>
     </template>
 
-    <!-- 底部安全距离占位 -->
-    <view class="safe-area-bottom" v-if="cartStore.cartList.length > 0" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/store/cart'
 import type { CartItem } from '@/store/cart'
@@ -109,6 +109,16 @@ import { toLogin } from '@/utils/navigator'
 const userStore = useUserStore()
 const cartStore = useCartStore()
 const loading = ref(false)
+const scrollHeight = ref(0)
+
+function calculateHeight() {
+  const sysInfo = uni.getSystemInfoSync()
+  scrollHeight.value = sysInfo.windowHeight - 120
+}
+
+onMounted(() => {
+  calculateHeight()
+})
 
 // 加载购物车数据
 async function loadCart() {
@@ -227,8 +237,7 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-cart {
   background: #F5F5F5;
-  min-height: 100vh;
-  padding-bottom: 120rpx;
+  min-height: 100%;
 }
 
 .cart-list {
@@ -384,7 +393,4 @@ onShow(() => {
   border: none;
 }
 
-.safe-area-bottom {
-  height: calc(120rpx + env(safe-area-inset-bottom));
-}
 </style>
