@@ -161,7 +161,7 @@ function goLogin() {
 
 <style lang="scss" scoped>
 .page-register {
-  min-height: 100vh;
+  min-height:  calc(100vh - 100rpx);
   background: #FFFFFF;
   padding: 0 60rpx;
 }

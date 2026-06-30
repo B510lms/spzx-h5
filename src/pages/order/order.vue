@@ -1,5 +1,5 @@
 <template>
-  <view class="page-order">
+    <scroll-view scroll-y class="page-order" :style="{ height: scrollHeight + 'px' }">
     <!-- 订单状态筛选 -->
     <view class="order-tabs">
       <scroll-view scroll-x class="order-tabs__scroll">
@@ -85,12 +85,7 @@
 
     <!-- 空状态 -->
     <no-data v-if="!loading && orders.length === 0" text="暂无订单" />
-
-    <!-- 加载更多 -->
-    <view class="order-loadmore" v-if="orders.length > 0">
-      <u-loadmore :status="loadStatus" />
-    </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -105,6 +100,9 @@ import NoData from '@/components/no-data/no-data.vue'
 
 const userStore = useUserStore()
 
+// 滚动区域高度：windowHeight 已排除 tabBar，无需再减
+const scrollHeight = uni.getSystemInfoSync().windowHeight
+
 const tabs = [
   { label: '全部', value: undefined },
   { label: '待付款', value: 0 },
@@ -118,7 +116,6 @@ const activeTab = ref<number | undefined>(undefined)
 const orders = ref<OrderInfo[]>([])
 const page = ref(1)
 const loading = ref(false)
-const loadStatus = ref('loadmore')
 
 function getStatusText(status: number) {
   return getOrderStatusText(status)
@@ -139,7 +136,6 @@ async function loadOrders() {
   try {
     const data = await getOrderList(page.value, 10, activeTab.value)
     if (data) {
-      console.log(data)
       const list = data.list || []
       const total = data.total || 0
 
@@ -147,13 +143,6 @@ async function loadOrders() {
         orders.value = list
       } else {
         orders.value = [...orders.value, ...list]
-      }
-      console.log(orders.value)
-
-      if (orders.value.length >= total) {
-        loadStatus.value = 'nomore'
-      } else {
-        loadStatus.value = 'loadmore'
       }
     }
   } catch (e) {
@@ -168,7 +157,6 @@ function switchTab(value: number | undefined) {
   activeTab.value = value
   page.value = 1
   orders.value = []
-  loadStatus.value = 'loadmore'
   loadOrders()
 }
 
@@ -194,7 +182,7 @@ function confirmReceive(order: OrderInfo) {
 }
 
 onReachBottom(() => {
-  if (loadStatus.value === 'nomore' || loading.value) return
+  if (loading.value) return
   page.value++
   loadOrders()
 })
@@ -215,7 +203,6 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-order {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .order-tabs {
@@ -350,9 +337,5 @@ onLoad((options) => {
       border: 1rpx solid #E4E7ED;
     }
   }
-}
-
-.order-loadmore {
-  padding: 30rpx 0;
 }
 </style>

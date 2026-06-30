@@ -1,5 +1,5 @@
 <template>
-  <view class="page-pay">
+  <scroll-view scroll-y class="page-pay" :style="{ height: scrollHeight + 'px' }">
     <!-- 支付金额 -->
     <view class="pay-amount">
       <text class="pay-amount__label">待支付金额</text>
@@ -54,7 +54,7 @@
       <view v-html="payFormHtml"></view>
       <!-- #endif -->
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -62,6 +62,8 @@ import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { submitAlipay } from '@/api/pay'
 import { getOrderDetail } from '@/api/order'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const orderId = ref('')
 const orderNo = ref('')
@@ -129,7 +131,6 @@ onLoad((options?: Record<string, string>) => {
 <style lang="scss" scoped>
 .page-pay {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .pay-amount {

@@ -1,5 +1,5 @@
 <template>
-  <view class="page-product-list">
+  <scroll-view scroll-y class="page-product-list" :style="{ height: scrollHeight + 'px' }">
     <!-- 顶部筛选栏 -->
     <view class="filter-bar">
       <view
@@ -75,7 +75,7 @@
 
     <!-- 底部安全距离 -->
     <view class="safe-area-bottom" />
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -85,6 +85,8 @@ import { getProductList, getAllBrands } from '@/api/product'
 import type { ProductItem, ProductListParams, Brand } from '@/api/product/type'
 import GoodsList from '@/components/goods-list/goods-list.vue'
 import NoData from '@/components/no-data/no-data.vue'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 // 筛选参数
 const queryParams = reactive<ProductListParams>({
@@ -241,7 +243,6 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-product-list {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .filter-bar {

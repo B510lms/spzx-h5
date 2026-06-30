@@ -1,5 +1,5 @@
 <template>
-  <view class="page-create-order">
+  <scroll-view scroll-y class="page-create-order" :style="{ height: scrollHeight + 'px' }">
     <!-- 收货地址 -->
     <view class="create-address" @click="goSelectAddress">
       <view v-if="selectedAddress" class="create-address__content">
@@ -76,7 +76,7 @@
         提交订单
       </button>
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -88,6 +88,8 @@ import type { OrderItemVo, TradeVo } from '@/api/order/type'
 import { getAddressList } from '@/api/address'
 import type { AddressInfo } from '@/api/address/type'
 import { toLogin } from '@/utils/navigator'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const userStore = useUserStore()
 
@@ -201,8 +203,7 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-create-order {
   background: #F5F5F5;
-  min-height: 100vh;
-  padding-bottom: 120rpx;
+  // padding-bottom: 120rpx;
 }
 
 .create-address {
@@ -369,7 +370,7 @@ onLoad((options) => {
   background: #FFFFFF;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-around;
   padding: 16rpx 30rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
@@ -397,6 +398,7 @@ onLoad((options) => {
     color: #FFFFFF;
     font-size: 26rpx;
     border-radius: 36rpx;
+    margin-right: 0;
     padding: 0 46rpx;
     border: none;
 

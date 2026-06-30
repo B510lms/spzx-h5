@@ -1,5 +1,5 @@
 <template>
-  <view class="page-order-show">
+  <scroll-view scroll-y class="page-order-show" :style="{ height: scrollHeight + 'px' }">
     <!-- 订单状态 -->
     <view class="order-show__status" v-if="orderInfo">
       <view class="order-show__status-icon">
@@ -78,7 +78,7 @@
     </view>
 
     <view class="safe-area-bottom" />
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -87,6 +87,8 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getOrderDetail } from '@/api/order'
 import type { OrderInfo } from '@/api/order/type'
 import { getOrderStatusText, getOrderStatusStyle } from '@/utils/common'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const orderInfo = ref<OrderInfo | null>(null)
 
@@ -130,7 +132,6 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-order-show {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .order-show__status {

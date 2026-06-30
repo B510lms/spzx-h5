@@ -1,5 +1,5 @@
 <template>
-  <view class="page-pay-success">
+  <scroll-view scroll-y class="page-pay-success" :style="{ height: scrollHeight + 'px' }">
     <!-- 成功状态 -->
     <view class="pay-success">
       <view class="pay-success__icon">
@@ -30,12 +30,14 @@
         返回首页
       </button>
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const orderNo = ref('')
 const amount = ref(0)
@@ -57,7 +59,6 @@ onLoad((options?: Record<string, string>) => {
 <style lang="scss" scoped>
 .page-pay-success {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .pay-success {

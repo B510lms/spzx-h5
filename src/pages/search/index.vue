@@ -1,5 +1,5 @@
 <template>
-  <view class="page-search">
+  <scroll-view scroll-y class="page-search" :style="{ height: scrollHeight + 'px' }">
     <!-- 搜索栏 -->
     <view class="search-bar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="search-bar__input-wrap">
@@ -57,9 +57,8 @@
         :load-status="loadStatus"
         :loading="loading"
       />
-      <no-data v-if="!loading && productList.length === 0" text="未找到相关商品" />
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -70,6 +69,8 @@ import type { ProductItem } from '@/api/product/type'
 import { useAppStore } from '@/store/app'
 import GoodsList from '@/components/goods-list/goods-list.vue'
 import NoData from '@/components/no-data/no-data.vue'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const appStore = useAppStore()
 const statusBarHeight = appStore.statusBarHeight || 20
@@ -173,7 +174,6 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-search {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .search-bar {
@@ -253,6 +253,6 @@ onLoad((options) => {
 }
 
 .search-result {
-  min-height: calc(100vh - 100rpx);
+  min-height: calc(100vh - 208rpx); // 搜索历史 +热门搜索
 }
 </style>

@@ -1,13 +1,15 @@
 <template>
-  <view class="page-browse">
+  <scroll-view scroll-y class="page-browse" :style="{ height: scrollHeight + 'px' }">
     <no-data text="暂无浏览记录">
       <button class="go-btn" @click="goHome">去逛逛</button>
     </no-data>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
 import NoData from '@/components/no-data/no-data.vue'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 function goHome() {
   uni.switchTab({ url: '/pages/index/index' })
@@ -21,7 +23,6 @@ function goHome() {
 <style lang="scss" scoped>
 .page-browse {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .go-btn {

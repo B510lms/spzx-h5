@@ -1,5 +1,5 @@
 <template>
-  <view class="page-address">
+  <scroll-view scroll-y class="page-address" :style="{ height: scrollHeight + 'px' }">
     <!-- 地址列表 -->
     <view class="address-list" v-if="addressList.length > 0">
       <view
@@ -35,7 +35,7 @@
     </view>
 
     <view class="safe-area-bottom" />
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -45,6 +45,8 @@ import { getAddressList } from '@/api/address'
 import type { AddressInfo } from '@/api/address/type'
 import { useUserStore } from '@/store/user'
 import NoData from '@/components/no-data/no-data.vue'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const userStore = useUserStore()
 const addressList = ref<AddressInfo[]>([])
@@ -101,7 +103,6 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-address {
   background: #F5F5F5;
-  min-height: 100vh;
   padding-bottom: 120rpx;
 }
 

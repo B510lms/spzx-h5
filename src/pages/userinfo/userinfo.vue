@@ -1,5 +1,5 @@
 <template>
-  <view class="page-userinfo">
+  <scroll-view scroll-y class="page-userinfo" :style="{ height: scrollHeight + 'px' }">
     <!-- 头像 -->
     <view class="userinfo-avatar" @click="changeAvatar">
       <text class="userinfo-avatar__label">头像</text>
@@ -25,7 +25,7 @@
         <text class="userinfo-item__value">{{ userInfo?.phone || '未绑定' }}</text>
       </view>
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -34,6 +34,8 @@ import { onShow } from '@dcloudio/uni-app'
 import { useUserStore } from '@/store/user'
 import type { UserInfo } from '@/store/user'
 import { getCurrentUserInfo } from '@/api/user'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 interface UserInfoData {
   phone?: string
@@ -90,7 +92,6 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-userinfo {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .userinfo-avatar {

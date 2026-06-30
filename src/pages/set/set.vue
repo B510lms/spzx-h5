@@ -1,5 +1,6 @@
 <template>
-  <view class="page-set">
+  <scroll-view scroll-y class="page-set" :style="{ height: scrollHeight + 'px' }">
+
     <!-- 设置项 -->
     <view class="set-menu">
       <!-- 接口地址 -->
@@ -56,7 +57,7 @@
         </view>
       </view>
     </u-popup>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -67,6 +68,9 @@ import { getDefaultBaseUrl } from '@/request'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
+
+// 滚动区域高度：windowHeight 已排除 tabBar，无需再减
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 // ========== 接口地址设置 ==========
 const showBaseUrlPopup = ref(false)
@@ -165,7 +169,6 @@ function handleLogout() {
 <style lang="scss" scoped>
 .page-set {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .set-menu {

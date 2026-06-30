@@ -1,5 +1,5 @@
 <template>
-  <view class="page-detail">
+  <scroll-view scroll-y class="page-detail" :style="{ height: scrollHeight + 'px' }">
     <!-- 商品轮播图 -->
     <swiper class="detail-swiper" :indicator-dots="true" :autoplay="false" circular>
       <swiper-item v-for="(url, index) in sliderUrls" :key="index">
@@ -103,7 +103,7 @@
         </view>
       </view>
     </u-popup>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -116,6 +116,8 @@ import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { formatPrice } from '@/utils/common'
 import { toLogin } from '@/utils/navigator'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
@@ -290,7 +292,6 @@ onMounted(() => {
 <style lang="scss" scoped>
 .page-detail {
   background: #F5F5F5;
-  min-height: 100vh;
   padding-bottom: 100rpx;
 }
 

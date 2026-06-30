@@ -1,5 +1,5 @@
 <template>
-  <view class="page-address-edit">
+  <scroll-view scroll-y class="page-address-edit" :style="{ height: scrollHeight + 'px' }">
     <view class="address-form">
       <view class="address-form__item">
         <text class="address-form__label">收货人</text>
@@ -65,7 +65,7 @@
         删除地址
       </button>
     </view>
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">
@@ -73,6 +73,8 @@ import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { getAddress } from '@/api/address'
 import type { AddressInfo } from '@/api/address/type'
+
+const scrollHeight = uni.getSystemInfoSync().windowHeight
 
 const isEdit = ref(false)
 
@@ -163,7 +165,6 @@ onLoad((options) => {
 <style lang="scss" scoped>
 .page-address-edit {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .address-form {
