@@ -1,17 +1,29 @@
 <template>
   <view class="page-index">
     <!-- 自定义导航栏 -->
-    <view class="index-navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
+    <view 
+      class="index-navbar" 
+      :style="{ 
+        backgroundColor: `rgba(255, 255, 255, ${navOpacity})`,
+      }"
+    >
       <!-- 搜索栏 -->
-      <view class="index-navbar__search" @click="goSearch">
-        <u-icon name="search" size="16" color="#999" />
-        <text class="index-navbar__search-text">搜索商品</text>
+      <view 
+        class="index-navbar__search" 
+        @click="goSearch"
+        :style="{ 
+          backgroundColor: navOpacity > 0.5 ? '#F5F5F5' : 'rgba(255, 255, 255, 0.3)' 
+        }"
+      >
+        <u-icon name="search" size="16" :color="navOpacity > 0.5 ? '#999' : '#FFFFFF'" />
+        <text class="index-navbar__search-text" :style="{ color: navOpacity > 0.5 ? '#999' : '#FFFFFF' }">搜索商品</text>
       </view>
     </view>
 
     <!-- 轮播图 -->
     <swiper
       class="index-banner"
+      :style="{ marginTop: `-${statusBarHeight + 20}px`, paddingTop: `${statusBarHeight + 20}px` }"
       :indicator-dots="true"
       :autoplay="true"
       :interval="3000"
@@ -32,7 +44,7 @@
           class="index-nav__item"
           @click="goProductListByNav(item)"
         >
-          <image :src="item.imageUrl || defaultNavImg" mode="aspectFill" class="index-nav__icon" />
+          <image :src="item.imageUrl" mode="aspectFill" class="index-nav__icon" />
           <text class="index-nav__name">{{ item.name }}</text>
         </view>
       </view>
@@ -74,32 +86,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useAppStore } from '@/store/app'
+import { ref, onMounted, computed } from 'vue'
+import { onPageScroll } from '@dcloudio/uni-app'
 import { getIndexData } from '@/api/product'
 import type { CategoryNode } from '@/api/product/type'
 import GoodsList from '@/components/goods-list/goods-list.vue'
-
-const appStore = useAppStore()
-const statusBarHeight = appStore.statusBarHeight || 20
-const navBarHeight = appStore.navBarHeight || 44
 
 // 轮播图
 const banners = ref([
   '/static/images/temp/banner1.jpg',
   '/static/images/temp/banner2.jpg',
   '/static/images/temp/banner3.jpg',
-  '/static/images/temp/banner4.jpg'
 ])
 
 // 导航入口列表
 const navList = ref<CategoryNode[]>([])
 
-// 默认导航图标
-const defaultNavImg = '/static/images/temp/cate1.jpg'
-
 // 广告图
-const adImage = ref('/static/images/temp/ad1.jpg')
+const adImage = ref('https://lilishop-oss.oss-cn-beijing.aliyuncs.com/1313246c16f6471e8e751355a675fbfb.gif')
+
+// 滚动距离
+const scrollTop = ref(0)
+// 状态栏高度
+const statusBarHeight = uni.getSystemInfoSync().statusBarHeight || 0
+// 导航栏透明度 (0-1)
+const navOpacity = computed(() => {
+  const threshold = 150
+  return Math.min(scrollTop.value / threshold, 1)
+})
 
 // 热销商品
 const hotProducts = ref<any[]>([])
@@ -158,6 +172,10 @@ onMounted(() => {
   loadIndexData()
 })
 
+onPageScroll((e) => {
+  scrollTop.value = e.scrollTop
+})
+
 // 暴露下拉刷新
 defineExpose({ onPullDownRefresh })
 </script>
@@ -169,23 +187,25 @@ defineExpose({ onPullDownRefresh })
 }
 
 .index-navbar {
-  background: #FFFFFF;
-  padding: 0 30rpx 16rpx;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  padding: 10rpx 20rpx;
   z-index: 99;
+  transition: background-color 0.3s ease;
 
   &__search {
     display: flex;
     align-items: center;
-    background: #F5F5F5;
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 36rpx;
     padding: 14rpx 24rpx;
+    backdrop-filter: blur(10px);
   }
 
   &__search-text {
     font-size: 26rpx;
-    color: #999;
     margin-left: 12rpx;
   }
 }
@@ -232,14 +252,12 @@ defineExpose({ onPullDownRefresh })
 }
 
 .index-ad {
-  padding: 20rpx;
+  width: 100%;
   background: #FFFFFF;
-  margin-top: 16rpx;
+  padding: 10rpx 0;
 
   &__img {
     width: 100%;
-    display: block;
-    border-radius: 12rpx;
   }
 }
 
