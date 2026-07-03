@@ -14,10 +14,12 @@
 |------|------|------|
 | 框架 | Vue 3 (Composition API) | ^3.4.21 |
 | 语言 | TypeScript | ^4.9.4 |
-| 跨平台 | uni-app (DCloud) | 3.0.0-alpha |
+| 跨平台 | uni-app (DCloud) | 3.0.0-alpha-5010420260626001 |
 | 构建 | Vite | ^5.2.0 |
 | 状态管理 | Pinia (setup syntax) | ^2.1.7 |
-| UI 库 | uview-plus | ^3.1.47 |
+| UI 库 | uview-plus | ^3.8.55 |
+| HTTP | Axios (H5) + uni.request 适配器 (小程序) | ^1.7.0 |
+| 自动导入 | unplugin-auto-import + unplugin-vue-components | ^19.0.0 / ^28.0.0 |
 | CSS | Sass/SCSS | ^1.77.0 |
 | 类型检查 | vue-tsc | ^1.0.24 |
 | 后端 | Java (Spring Boot) | localhost:8500 |
@@ -29,9 +31,14 @@
 ```text
 spzx-h5/
 ├── index.html                  # Vite 入口 HTML
-├── vite.config.ts              # Vite 配置（uni-app 插件 + proxy + path alias）
+├── vite.config.ts              # Vite 配置（uni-app + auto-import + proxy + alias）
 ├── tsconfig.json               # TypeScript 配置
 ├── package.json                # 依赖与脚本
+├── .env                        # 公共环境变量
+├── .env.development            # 开发环境变量
+├── .env.test                   # 测试环境变量
+├── .env.production             # 生产环境变量
+├── .gitignore                  # Git 忽略规则
 ├── RENAME.md                   # 本架构文档
 │
 └── src/
@@ -41,12 +48,13 @@ spzx-h5/
     ├── pages.json              # 页面路由 + 原生 tabBar 配置
     ├── uni.scss                # 全局设计系统（变量 + 工具类）
     ├── env.d.ts                # TypeScript 环境声明（模块、ImportMeta、Uni 扩展）
-    ├── shims-uni.d.ts          # uni-app 编译指令类型 shim
+    ├── shims-uni.d.ts          # uni-app 编译指令类型 shim + uview-plus 模块声明
     │
     ├── api/                    # API 接口层（按业务域拆分）
-    ├── request/                # HTTP 请求封装
+    ├── request/                # HTTP 请求封装（Axios + uni.request 适配器）
     ├── store/                  # Pinia 状态管理
     ├── type/                   # 全局类型定义
+    ├── types/                  # 自动生成类型声明（auto-imports.d.ts, components.d.ts）
     ├── utils/                  # 工具函数
     ├── components/             # 公共组件
     ├── pages/                  # 页面视图
@@ -102,25 +110,44 @@ api/
 
 ```text
 request/
-├── index.ts                   # 核心泛型请求函数 request<T>()
+├── index.ts                   # 核心请求函数 request<T>() — Axios + uni.request 适配器
 └── type.ts                    # ApiResponse<T> 接口
+```
+
+**架构设计：**
+
+跨平台 HTTP 请求方案，H5 端使用 Axios 原生实例，小程序端通过条件编译注入 `uni.request` 适配器。
+
+```
+Axios 实例 (H5) / uni.request 适配器 (MP-WEIXIN)
+  │
+  ├── 请求拦截器
+  │     ├── 动态 baseURL：自定义 > 开发环境(''/Vite proxy) > VITE_API_BASE_URL
+  │     └── 自动注入 token（uni.getStorageSync → header.token）
+  │
+  └── 响应拦截器
+        ├── code === 200  → resolve(data)   ✅ 解包 data 字段
+        ├── code === 208  → logout + 跳转登录 🔒 未登录
+        └── 其他          → toast message + reject ❌
 ```
 
 **`request<T>(url, method, data?, header?)` 核心逻辑：**
 
 ```
 发起请求
-  ├─ 开发环境: BASE_URL = ''（走 Vite proxy → localhost:8500）
-  ├─ 生产环境: BASE_URL = import.meta.env.VITE_API_BASE_URL
-  ├─ 自动注入 token 请求头（从 storage 读取）
+  ├─ 开发环境: baseURL = ''（走 Vite proxy → localhost:8500）
+  ├─ 生产环境: baseURL = import.meta.env.VITE_API_BASE_URL
+  ├─ 请求拦截器自动注入 token
   ├─ 超时: 10s
   │
-  └─ 响应处理:
-      ├─ statusCode ≠ 200  → toast "网络异常" + reject
-      ├─ code === 200      → resolve(data)   ✅ 成功
-      ├─ code === 208      → logout + 跳转登录 🔒 未登录
-      └─ 其他 code          → toast message + reject ❌
+  └─ 响应拦截器处理:
+      ├─ HTTP status ≠ 200  → toast "网络异常" + reject
+      ├─ code === 200       → resolve(data)   ✅ 成功
+      ├─ code === 208       → logout + 跳转登录 🔒 未登录
+      └─ 其他 code           → toast message + reject ❌
 ```
+
+> H5 端使用 Axios，小程序端通过 `#ifdef MP-WEIXIN` 注入 uni.request 适配器，调用方无感知。
 
 ---
 
@@ -254,21 +281,42 @@ $u-info:    #909399
 
 1. **TypeScript 严格模式** — 所有代码使用 `.ts` / `<script setup lang="ts">`，零隐式 `any`
 2. **API 按域分层** — 每个业务域独立目录，`index.ts` + `type.ts` 就近维护
-3. **泛型请求** — `request<T>()` 保证请求-响应类型链路安全
+3. **Axios + 适配器请求** — H5 端使用 Axios 拦截器链，小程序端条件编译注入 uni.request 适配器，调用方透明
 4. **Pinia setup syntax** — 统一使用 Composition API 风格定义 Store
 5. **手动持久化** — 不使用 Pinia 插件，显式调用 `uni.setStorageSync`
-6. **Vite proxy 开发** — 开发环境 `/api` 请求代理到 `localhost:8500`，无需跨域
-7. **token 请求头** — 后端使用 `{ token }` 自定义头认证，非 JWT Bearer 标准
-8. **响应码约定** — `code: 200` 成功，`code: 208` 未登录
+6. **自动导入** — Vue/Pinia/uni-app API + 项目组件按需自动导入，减少样板代码
+7. **分环境配置** — `.env.development` / `.env.test` / `.env.production`，Vite 按运行模式自动加载
+8. **Vite proxy 开发** — 开发环境 `/api` 请求代理到 `localhost:8500`，无需跨域
+9. **token 请求头** — 后端使用 `{ token }` 自定义头认证，非 JWT Bearer 标准
+10. **响应码约定** — `code: 200` 成功，`code: 208` 未登录
 
 ---
 
-## 十二、开发命令
+## 十二、工程化配置
+
+### 自动导入
+- **API 自动导入** (`unplugin-auto-import`)：Vue、Pinia、uni-app 生命周期钩子无需手动 import
+- **组件自动导入** (`unplugin-vue-components`)：`src/components/` 下的项目组件按需自动注册
+- uview-plus 组件保持全局注册 (`app.use`)，不参与自动导入
+- 类型声明文件自动生成至 `src/types/auto-imports.d.ts` 和 `src/types/components.d.ts`
+
+### 环境配置
+| 文件 | 用途 | VITE_API_BASE_URL |
+|------|------|-------------------|
+| `.env` | 公共变量（VITE_APP_TITLE） | — |
+| `.env.development` | 开发环境 | 空（走 Vite proxy → localhost:8500） |
+| `.env.test` | 测试环境 | 待配置 |
+| `.env.production` | 生产环境 | 待配置 |
+
+Vite 根据运行命令自动加载对应 `.env.[mode]` 文件。
+
+### 开发命令
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev:h5` | 启动 H5 开发服务器（localhost:8080） |
+| `npm run dev:h5` | 启动 H5 开发服务器（默认 localhost:8080） |
 | `npm run build:h5` | 构建 H5 生产版本 |
+| `npm run build:h5:test` | 构建 H5 测试版本 |
 | `npm run dev:mp-weixin` | 启动微信小程序开发 |
 | `npm run build:mp-weixin` | 构建微信小程序 |
 | `npm run type-check` | TypeScript 类型检查（vue-tsc --noEmit） |

@@ -23,7 +23,6 @@
     <!-- 轮播图 -->
     <swiper
       class="index-banner"
-      :style="{ marginTop: `-${statusBarHeight + 20}px`, paddingTop: `${statusBarHeight + 20}px` }"
       :indicator-dots="true"
       :autoplay="true"
       :interval="3000"
@@ -107,8 +106,6 @@ const adImage = ref('https://lilishop-oss.oss-cn-beijing.aliyuncs.com/1313246c16
 
 // 滚动距离
 const scrollTop = ref(0)
-// 状态栏高度
-const statusBarHeight = uni.getSystemInfoSync().statusBarHeight || 0
 // 导航栏透明度 (0-1)
 const navOpacity = computed(() => {
   const threshold = 150

@@ -52,9 +52,11 @@
           <text>首页</text>
         </view>
         <view class="detail-bottom__action" @click="goCart">
-          <u-icon name="shopping-cart" size="22" color="#666" />
+          <view class="detail-bottom__icon-wrap">
+            <u-icon name="shopping-cart" size="22" color="#666" />
+            <u-badge :value="cartCount" v-if="cartCount > 0" :offset="[4, -4]" />
+          </view>
           <text>购物车</text>
-          <u-badge :value="cartCount" v-if="cartCount > 0" :offset="[8, -4]" />
         </view>
       </view>
       <view class="detail-bottom__btns">
@@ -94,7 +96,15 @@
           <!-- 数量选择 -->
           <view class="spec-popup__qty">
             <text class="spec-popup__qty-label">数量</text>
-            <u-number-box v-model="quantity" :min="1" :max="currentMaxStock" integer />
+            <view class="spec-popup__qty-control">
+              <view class="spec-popup__qty-btn" :class="{ 'spec-popup__qty-btn--disabled': quantity <= 1 }" @click="quantity > 1 && quantity--">
+                <text>-</text>
+              </view>
+              <text class="spec-popup__qty-value">{{ quantity }}</text>
+              <view class="spec-popup__qty-btn" :class="{ 'spec-popup__qty-btn--disabled': quantity >= currentMaxStock }" @click="quantity < currentMaxStock && quantity++">
+                <text>+</text>
+              </view>
+            </view>
           </view>
         </scroll-view>
 
@@ -109,7 +119,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getProductDetail } from '@/api/product'
+import { getProductDetail, getSkuById } from '@/api/product'
 import { addToCart as addToCartApi } from '@/api/cart'
 import { buyNow as buyNowApi } from '@/api/order'
 import { useCartStore } from '@/store/cart'
@@ -131,16 +141,28 @@ const detailsImageUrls = ref<string[]>([])
 const specList = ref<any[]>([])
 const skuSpecValueMap = ref<Record<string, string>>({})
 
+// 当前选中的 SKU ID（用于价格更新）
+const selectedSkuId = ref<string>('')
+
 // 计算属性
 const productName = computed(() => productSku.value?.skuName || product.value?.name || '')
-const salePrice = computed(() => productSku.value?.salePrice || 0)
-const marketPrice = computed(() => productSku.value?.marketPrice || 0)
+
+// 价格：根据选中的 SKU 或默认 SKU 显示价格
+const salePrice = computed(() => {
+  if (currentSku.value?.salePrice) return currentSku.value.salePrice
+  return productSku.value?.salePrice || 0
+})
+const marketPrice = computed(() => {
+  if (currentSku.value?.marketPrice) return currentSku.value.marketPrice
+  return productSku.value?.marketPrice || 0
+})
 const saleNum = computed(() => productSku.value?.saleNum || 0)
 
 const priceInt = computed(() => Math.floor(salePrice.value))
 const priceDecimal = computed(() => (salePrice.value || 0).toFixed(2).split('.')[1] || '00')
 
 const currentThumbImg = computed(() => {
+  if (currentSku.value?.thumbImg) return currentSku.value.thumbImg
   return productSku.value?.thumbImg || sliderUrls.value[0] || '/static/images/errorImage.jpg'
 })
 
@@ -159,26 +181,30 @@ const specGroups = computed(() => {
   if (specList.value && specList.value.length > 0) {
     specList.value.forEach((spec: any) => {
       groups.push({
-        specName: spec.specName || spec.name,
-        values: spec.specValue ? spec.specValue.split(',') : []
+        specName: spec.key || spec.name || spec.specName, // 支持多种字段名
+        values: spec.valueList || (spec.specValue ? spec.specValue.split(',') : []) // 支持数组和字符串
       })
     })
   }
   return groups
 })
 
-// 选中的规格文本
+// 选中的规格文本（优先显示 currentSku 的规格，其次显示 selectedSpecs）
 const selectedSpecText = computed(() => {
-  return Object.values(selectedSpecs.value).join('、') || ''
+  if (currentSku.value?.skuSpec) {
+    return currentSku.value.skuSpec.replace(/ \+ /g, '、')
+  }
+  const specs = Object.values(selectedSpecs.value)
+  return specs.length > 0 ? specs.join('、') : ''
 })
 
 // 当前最大库存
 const currentMaxStock = computed(() => {
-  return currentSku.value?.stockNum || productSku.value?.stockNum || 99
+  return currentSku.value?.stock || currentSku.value?.stockNum || productSku.value?.stockNum || 99
 })
 
 // 根据选中的规格匹配 SKU
-function matchSku() {
+async function matchSku() {
   const keys = Object.keys(selectedSpecs.value)
   if (keys.length === 0 || !skuSpecValueMap.value) return
 
@@ -186,12 +212,37 @@ function matchSku() {
   const specValues = keys.map(k => selectedSpecs.value[k]).filter(Boolean)
   if (specValues.length === 0) return
 
-  const specKey = specValues.join(' ')
-  const matchedSkuId = skuSpecValueMap.value[specKey]
+  // 尝试多种格式匹配（兼容不同后端数据格式）
+  const possibleKeys = [
+    specValues.join(' + '),           // "8G + 白色" - 电脑格式
+    specValues.join(',')              // "白色,8G" - 手机格式（逗号分隔）
+  ]
+
+  let matchedSkuId: string | undefined
+  for (const key of possibleKeys) {
+    if (skuSpecValueMap.value[key]) {
+      matchedSkuId = skuSpecValueMap.value[key]
+      break
+    }
+  }
 
   if (matchedSkuId) {
-    // 更新选中 SKU（这里简化处理，实际可能需要再请求）
-    currentSku.value = { ...productSku.value }
+    selectedSkuId.value = String(matchedSkuId)
+    try {
+      // 调用 API 获取对应 SKU 的价格等信息
+      const skuInfo = await getSkuById(matchedSkuId)
+      // 处理可能没有 code:200 的情况（直接返回数据）
+      if (skuInfo && typeof skuInfo === 'object' && skuInfo.id) {
+        currentSku.value = skuInfo
+      }
+    } catch (e: any) {
+      // 如果是直接返回的数据对象（不是 Error），使用它
+      if (e && typeof e === 'object' && e.id) {
+        currentSku.value = e
+      } else {
+        console.error('获取 SKU 信息失败:', e)
+      }
+    }
   }
 }
 
@@ -216,8 +267,11 @@ async function addToCart() {
     toLogin()
     return
   }
+  
+  // 如果选择了规格，使用选中的 SKU ID，否则使用默认的
+  const targetSkuId = selectedSkuId.value || skuId.value
   try {
-    await addToCartApi(skuId.value, quantity.value)
+    await addToCartApi(targetSkuId, quantity.value)
     uni.showToast({ title: '已加入购物车', icon: 'success' })
     cartStore.fetchCartList()
     showSpec.value = false
@@ -232,11 +286,14 @@ async function buyNow() {
     toLogin()
     return
   }
+  
+  // 如果选择了规格，使用选中的 SKU ID，否则使用默认的
+  const targetSkuId = selectedSkuId.value || skuId.value
   try {
-    const data = await buyNowApi(skuId.value)
+    const data = await buyNowApi(targetSkuId)
     if (data) {
       uni.navigateTo({
-        url: `/pages/order/create?from=buyNow&skuId=${skuId.value}`
+        url: `/pages/order/create?from=buyNow&skuId=${targetSkuId}`
       })
     }
   } catch (e) {
@@ -271,9 +328,34 @@ async function loadDetail() {
       detailsImageUrls.value = data.detailsImageUrlList || []
       specList.value = data.specValueList || []
       skuSpecValueMap.value = data.skuSpecValueMap || {}
+      
+      // 自动选中默认规格
+      autoSelectDefaultSpec()
     }
   } catch (e) {
     console.error('加载商品详情失败:', e)
+  }
+}
+
+// 自动选中默认规格
+function autoSelectDefaultSpec() {
+  const skuSpec = productSku.value?.skuSpec
+  if (!skuSpec || !specList.value?.length) return
+  
+  // skuSpec 格式是 "32G + 黑色"，需要按 " + " 分割
+  const specValues = skuSpec.split(' + ')
+  
+  // 为每个规格分组设置默认值
+  specList.value.forEach((spec: any, index: number) => {
+    const value = specValues[index]?.trim()
+    if (value && spec.valueList?.includes(value)) {
+      selectedSpecs.value[spec.key] = value
+    }
+  })
+  
+  // 如果有选中规格，更新 SKU 信息
+  if (Object.keys(selectedSpecs.value).length > 0) {
+    matchSku()
   }
 }
 
@@ -419,6 +501,20 @@ onMounted(() => {
     }
   }
 
+  &__icon-wrap {
+    position: relative;
+    display: inline-flex;
+
+    .u-badge--error{
+      background-color: transparent;
+      color: #E4393C;
+    }
+
+    .u-badge--not-dot{
+      padding: 0;
+    }
+  }
+
   &__btns {
     flex: 1;
     display: flex;
@@ -531,6 +627,44 @@ onMounted(() => {
     font-size: 26rpx;
     color: #333;
     margin-right: 24rpx;
+  }
+
+  &__qty-control {
+    display: flex;
+    align-items: center;
+    background: #F5F5F5;
+    border-radius: 8rpx;
+  }
+
+  &__qty-btn {
+    width: 64rpx;
+    height: 48rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    text {
+      font-size: 28rpx;
+      color: #333;
+      font-weight: bold;
+    }
+
+    &--disabled {
+      text {
+        color: #CCC;
+      }
+    }
+  }
+
+  &__qty-value {
+    min-width: 64rpx;
+    height: 48rpx;
+    line-height: 48rpx;
+    text-align: center;
+    font-size: 26rpx;
+    color: #333;
+    border-left: 1rpx solid #E4E4E4;
+    border-right: 1rpx solid #E4E4E4;
   }
 
   &__confirm {

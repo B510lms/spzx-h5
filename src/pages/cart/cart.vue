@@ -1,5 +1,6 @@
 <template>
-  <view class="page-cart">
+  <scroll-view scroll-y class="page-cart" :style="{ height: scrollHeight + 'px' }">
+
     <!-- 空购物车 -->
     <no-data
       v-if="!loading && cartStore.cartList.length === 0"
@@ -88,7 +89,7 @@
       </view>
     </template>
 
-  </view>
+  </scroll-view>
 </template>
 
 <script setup lang="ts">

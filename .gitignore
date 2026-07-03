@@ -5,3 +5,7 @@ unpackage/
 *.log
 .idea/
 .hbuilderx/
+.env.local
+.env.*.local
+src/types/auto-imports.d.ts
+src/types/components.d.ts
