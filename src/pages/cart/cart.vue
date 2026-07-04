@@ -1,6 +1,5 @@
 <template>
-  <scroll-view scroll-y class="page-cart" :style="{ height: scrollHeight + 'px' }">
-
+  <view class="page-cart">
     <!-- 空购物车 -->
     <no-data
       v-if="!loading && cartStore.cartList.length === 0"
@@ -11,8 +10,7 @@
 
     <!-- 购物车列表 -->
     <template v-else>
-      <scroll-view scroll-y class="cart-scroll" :style="{ height: scrollHeight + 'px' }">
-        <view class="cart-list">
+      <view class="cart-list">
         <view
           v-for="item in cartStore.cartList"
           :key="item.id || item.skuId"
@@ -21,7 +19,7 @@
           <!-- 选择框 -->
           <view class="cart-item__check" @click="toggleCheck(item)">
             <u-icon
-              :name="item.isChecked === 1 ? 'checkbox-mark' : 'checkbox'"
+              :name="item.isChecked ? 'checkmark-circle-fill' : 'checkmark-circle'"
               :size="20"
               :color="item.isChecked === 1 ? '#E4393C' : '#C0C4CC'"
             />
@@ -60,14 +58,13 @@
             <u-icon name="trash" size="18" color="#C0C4CC" />
           </view>
         </view>
-        </view>
-      </scroll-view>
+      </view>
 
       <!-- 底部结算栏 -->
       <view class="cart-bottom">
         <view class="cart-bottom__check" @click="toggleAllCheck">
           <u-icon
-            :name="cartStore.isAllChecked ? 'checkbox-mark' : 'checkbox'"
+            :name="cartStore.isAllChecked ? 'checkmark-circle-fill' : 'checkmark-circle'"
             :size="20"
             :color="cartStore.isAllChecked ? '#E4393C' : '#C0C4CC'"
           />
@@ -79,21 +76,33 @@
           <text class="cart-bottom__total-price">¥{{ cartStore.totalPrice.toFixed(2) }}</text>
         </view>
 
-        <button
-          class="cart-bottom__btn"
-          :disabled="cartStore.checkedCount === 0"
-          @click="goCreateOrder"
-        >
-          去结算({{ cartStore.checkedCount }})
-        </button>
+        <view class="cart-bottom__actions">
+          <view
+            class="cart-bottom__delete-btn"
+            :class="{ active: cartStore.checkedCount > 0 }"
+            @click="deleteChecked"
+          >
+            <u-icon name="trash" size="18" :color="cartStore.checkedCount > 0 ? '#E4393C' : '#C0C4CC'" />
+            <text class="cart-bottom__delete-text">删除</text>
+          </view>
+          <button
+            class="cart-bottom__btn"
+            :disabled="cartStore.checkedCount === 0"
+            @click="goCreateOrder"
+          >
+            去结算({{ cartStore.checkedCount }})
+          </button>
+        </view>
       </view>
-    </template>
 
-  </scroll-view>
+      <!-- 底部占位，防止内容被结算栏遮挡 -->
+      <view class="cart-bottom-placeholder"></view>
+    </template>
+  </view>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useCartStore } from '@/store/cart'
 import type { CartItem } from '@/store/cart'
@@ -102,7 +111,8 @@ import {
   addToCart as addToCartApi,
   deleteCartItem,
   checkCartItem,
-  checkAllCart
+  checkAllCart,
+  deleteCheckedItems
 } from '@/api/cart'
 import NoData from '@/components/no-data/no-data.vue'
 import { toLogin } from '@/utils/navigator'
@@ -110,16 +120,6 @@ import { toLogin } from '@/utils/navigator'
 const userStore = useUserStore()
 const cartStore = useCartStore()
 const loading = ref(false)
-const scrollHeight = ref(0)
-
-function calculateHeight() {
-  const sysInfo = uni.getSystemInfoSync()
-  scrollHeight.value = sysInfo.windowHeight - 120
-}
-
-onMounted(() => {
-  calculateHeight()
-})
 
 // 加载购物车数据
 async function loadCart() {
@@ -140,7 +140,6 @@ async function toggleCheck(item: CartItem) {
   const isChecked = item.isChecked === 1 ? 0 : 1
   try {
     await checkCartItem(item.skuId, isChecked)
-    // 刷新列表
     await cartStore.fetchCartList()
   } catch (e) {
     console.error('切换选中失败:', e)
@@ -174,7 +173,6 @@ async function increaseQty(item: CartItem) {
 async function decreaseQty(item: CartItem) {
   if (!userStore.isLogin) return toLogin()
   if (item.skuNum <= 1) {
-    // 数量为1时询问是否删除
     uni.showModal({
       title: '提示',
       content: '确定要删除该商品吗？',
@@ -187,9 +185,6 @@ async function decreaseQty(item: CartItem) {
     return
   }
   try {
-    // 购物车的 addToCart 增加数量，减少需要特殊处理
-    // 这里使用 -1 表示减少（需要后端支持）
-    // 简化处理：直接调删除再重新添加
     await addToCartApi(item.skuId, -1)
     await cartStore.fetchCartList()
   } catch (e) {
@@ -206,6 +201,30 @@ async function deleteCart(item: CartItem) {
   } catch (e) {
     console.error('删除失败:', e)
   }
+}
+
+// 批量删除选中的商品
+async function deleteChecked() {
+  if (!userStore.isLogin) return toLogin()
+  if (cartStore.checkedCount === 0) {
+    uni.showToast({ title: '请选择要删除的商品', icon: 'none' })
+    return
+  }
+  uni.showModal({
+    title: '提示',
+    content: `确定要删除选中的${cartStore.checkedCount}件商品吗？`,
+    success: async (res: any) => {
+      if (res.confirm) {
+        try {
+          await deleteCheckedItems()
+          await cartStore.fetchCartList()
+          uni.showToast({ title: '删除成功', icon: 'success' })
+        } catch (e) {
+          console.error('批量删除失败:', e)
+        }
+      }
+    }
+  })
 }
 
 // 跳转商品详情
@@ -238,7 +257,7 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-cart {
   background: #F5F5F5;
-  min-height: 100%;
+  min-height: 100vh;
 }
 
 .cart-list {
@@ -326,16 +345,15 @@ onShow(() => {
 
 .cart-bottom {
   position: fixed;
-  bottom: 0;
+  bottom: var(--window-bottom);
   left: 0;
   right: 0;
   background: #FFFFFF;
   display: flex;
   align-items: center;
   padding: 16rpx 30rpx;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
-  z-index: 99;
+  z-index: 100;
 
   &__check {
     display: flex;
@@ -365,6 +383,27 @@ onShow(() => {
     font-weight: bold;
   }
 
+  &__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__delete-btn {
+    display: flex;
+    align-items: center;
+    margin-right: 20rpx;
+
+    &.active:active {
+      opacity: 0.7;
+    }
+  }
+
+  &__delete-text {
+    font-size: 24rpx;
+    color: #999;
+    margin-left: 6rpx;
+  }
+
   &__btn {
     height: 72rpx;
     line-height: 72rpx;
@@ -382,6 +421,11 @@ onShow(() => {
   }
 }
 
+.cart-bottom-placeholder {
+  height: 120rpx;
+  padding-bottom: var(--window-bottom);
+}
+
 .go-shopping-btn {
   margin-top: 20rpx;
   height: 72rpx;
@@ -393,5 +437,4 @@ onShow(() => {
   padding: 0 60rpx;
   border: none;
 }
-
 </style>
