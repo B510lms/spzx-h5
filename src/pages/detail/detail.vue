@@ -9,15 +9,15 @@
 
     <!-- 商品基本信息 -->
     <view class="detail-info">
+      <view class="detail-info__name">{{ productName }}</view>
       <view class="detail-info__price">
         <text class="detail-info__price-symbol">¥</text>
         <text class="detail-info__price-value">{{ priceInt }}</text>
-        <text class="detail-info__price-decimal">.{{ priceDecimal }}</text>
         <text class="detail-info__market" v-if="marketPrice">¥{{ marketPrice }}</text>
       </view>
-      <view class="detail-info__name">{{ productName }}</view>
-      <view class="detail-info__sale" v-if="saleNum > 0">
-        <text>已售 {{ formatSaleNum(saleNum) }}</text>
+      <view class="detail-info__sale">
+        <text>销量 {{ formatSaleNum(saleNum) }}</text>
+        <text>库存 {{ formatSaleNum(stockNum) }}</text>
       </view>
     </view>
 
@@ -119,7 +119,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { getProductDetail, getSkuById } from '@/api/product'
+import { getProductDetail } from '@/api/product'
 import { addToCart as addToCartApi } from '@/api/cart'
 import { buyNow as buyNowApi } from '@/api/order'
 import { useCartStore } from '@/store/cart'
@@ -145,9 +145,11 @@ const skuSpecValueMap = ref<Record<string, string>>({})
 const selectedSkuId = ref<string>('')
 
 // 计算属性
-const productName = computed(() => productSku.value?.skuName || product.value?.name || '')
+const productName = computed(() => {
+  if (currentSku.value?.skuName) return currentSku.value.skuName
+  return productSku.value?.skuName || product.value?.name || ''
+})
 
-// 价格：根据选中的 SKU 或默认 SKU 显示价格
 const salePrice = computed(() => {
   if (currentSku.value?.salePrice) return currentSku.value.salePrice
   return productSku.value?.salePrice || 0
@@ -156,10 +158,16 @@ const marketPrice = computed(() => {
   if (currentSku.value?.marketPrice) return currentSku.value.marketPrice
   return productSku.value?.marketPrice || 0
 })
-const saleNum = computed(() => productSku.value?.saleNum || 0)
+const saleNum = computed(() => {
+  if (currentSku.value?.saleNum) return currentSku.value.saleNum
+  return productSku.value?.saleNum || 0
+})
+const stockNum = computed(() => {
+  if (currentSku.value?.stockNum) return currentSku.value.stockNum
+  return productSku.value?.stockNum || 0
+})
 
 const priceInt = computed(() => Math.floor(salePrice.value))
-const priceDecimal = computed(() => (salePrice.value || 0).toFixed(2).split('.')[1] || '00')
 
 const currentThumbImg = computed(() => {
   if (currentSku.value?.thumbImg) return currentSku.value.thumbImg
@@ -230,18 +238,14 @@ async function matchSku() {
     selectedSkuId.value = String(matchedSkuId)
     try {
       // 调用 API 获取对应 SKU 的价格等信息
-      const skuInfo = await getSkuById(matchedSkuId)
+      const skuInfo = await getProductDetail(matchedSkuId)
       // 处理可能没有 code:200 的情况（直接返回数据）
-      if (skuInfo && typeof skuInfo === 'object' && skuInfo.id) {
-        currentSku.value = skuInfo
+      if (skuInfo && skuInfo.productSku) {
+        currentSku.value = skuInfo.productSku
+        console.log('匹配到的 SKU 信息:', currentSku.value)
       }
     } catch (e: any) {
-      // 如果是直接返回的数据对象（不是 Error），使用它
-      if (e && typeof e === 'object' && e.id) {
-        currentSku.value = e
-      } else {
         console.error('获取 SKU 信息失败:', e)
-      }
     }
   }
 }
@@ -322,12 +326,12 @@ async function loadDetail() {
   try {
     const data = await getProductDetail(skuId.value)
     if (data) {
-      productSku.value = data.productSku
-      product.value = data.product || {}
-      sliderUrls.value = data.sliderUrlList || []
       detailsImageUrls.value = data.detailsImageUrlList || []
-      specList.value = data.specValueList || []
+      product.value = data.product || {}
+      productSku.value = data.productSku
       skuSpecValueMap.value = data.skuSpecValueMap || {}
+      sliderUrls.value = data.sliderUrlList || []
+      specList.value = data.specValueList || []
       
       // 自动选中默认规格
       autoSelectDefaultSpec()
@@ -390,25 +394,25 @@ onMounted(() => {
 
 .detail-info {
   background: #FFFFFF;
-  padding: 24rpx 30rpx;
+  padding: 20rpx 30rpx;
   margin-bottom: 16rpx;
+
+  &__name {
+    font-size: 30rpx;
+    color: #333;
+    line-height: 1.5;
+  }
 
   &__price-symbol {
     color: #E4393C;
-    font-size: 28rpx;
+    font-size: 20rpx;
     font-weight: bold;
   }
 
   &__price-value {
     color: #E4393C;
-    font-size: 48rpx;
-    font-weight: bold;
-  }
-
-  &__price-decimal {
-    color: #E4393C;
-    font-size: 28rpx;
-    font-weight: bold;
+    font-size: 32rpx;
+    font-weight: 600;
   }
 
   &__market {
@@ -418,17 +422,13 @@ onMounted(() => {
     margin-left: 12rpx;
   }
 
-  &__name {
-    font-size: 30rpx;
-    color: #333;
-    line-height: 1.5;
-    margin-top: 16rpx;
-  }
-
   &__sale {
+    display: flex;
+    align-items: center;
+    gap: 24rpx;
     font-size: 24rpx;
     color: #999;
-    margin-top: 10rpx;
+    margin-top: 6rpx;
   }
 }
 
