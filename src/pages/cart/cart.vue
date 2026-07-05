@@ -59,45 +59,45 @@
           </view>
         </view>
       </view>
+    </template>
 
-      <!-- 底部结算栏 -->
-      <view class="cart-bottom">
-        <view class="cart-bottom__check" @click="toggleAllCheck">
-          <u-icon
-            :name="cartStore.isAllChecked ? 'checkmark-circle-fill' : 'checkmark-circle'"
-            :size="20"
-            :color="cartStore.isAllChecked ? '#E4393C' : '#C0C4CC'"
-          />
-          <text class="cart-bottom__check-text">全选</text>
-        </view>
-
-        <view class="cart-bottom__total">
-          <text class="cart-bottom__total-label">合计:</text>
-          <text class="cart-bottom__total-price">¥{{ cartStore.totalPrice.toFixed(2) }}</text>
-        </view>
-
-        <view class="cart-bottom__actions">
-          <view
-            class="cart-bottom__delete-btn"
-            :class="{ active: cartStore.checkedCount > 0 }"
-            @click="deleteChecked"
-          >
-            <u-icon name="trash" size="18" :color="cartStore.checkedCount > 0 ? '#E4393C' : '#C0C4CC'" />
-            <text class="cart-bottom__delete-text">删除</text>
-          </view>
-          <button
-            class="cart-bottom__btn"
-            :disabled="cartStore.checkedCount === 0"
-            @click="goCreateOrder"
-          >
-            去结算({{ cartStore.checkedCount }})
-          </button>
-        </view>
+    <!-- 底部结算栏 -->
+    <view class="cart-bottom">
+      <view class="cart-bottom__check" @click="toggleAllCheck">
+        <u-icon
+          :name="cartStore.isAllChecked ? 'checkmark-circle-fill' : 'checkmark-circle'"
+          :size="20"
+          :color="cartStore.isAllChecked ? '#E4393C' : '#C0C4CC'"
+        />
+        <text class="cart-bottom__check-text">全选</text>
       </view>
 
-      <!-- 底部占位，防止内容被结算栏遮挡 -->
-      <view class="cart-bottom-placeholder"></view>
-    </template>
+      <view class="cart-bottom__total">
+        <text class="cart-bottom__total-label">合计:</text>
+        <text class="cart-bottom__total-price">¥{{ cartStore.totalPrice.toFixed(2) }}</text>
+      </view>
+
+      <view class="cart-bottom__actions">
+        <view
+          class="cart-bottom__delete-btn"
+          :class="{ active: cartStore.checkedCount > 0 }"
+          @click="deleteChecked"
+        >
+          <u-icon name="trash" size="18" :color="cartStore.checkedCount > 0 ? '#E4393C' : '#C0C4CC'" />
+          <text class="cart-bottom__delete-text">删除</text>
+        </view>
+        <button
+          class="cart-bottom__btn"
+          :disabled="cartStore.checkedCount === 0"
+          @click="goCreateOrder"
+        >
+          去结算({{ cartStore.checkedCount }})
+        </button>
+      </view>
+    </view>
+
+    <!-- 底部占位，防止内容被结算栏遮挡 -->
+    <view class="cart-bottom-placeholder"></view>
   </view>
 </template>
 
@@ -257,7 +257,6 @@ onShow(() => {
 <style lang="scss" scoped>
 .page-cart {
   background: #F5F5F5;
-  min-height: 100vh;
 }
 
 .cart-list {
@@ -422,7 +421,6 @@ onShow(() => {
 }
 
 .cart-bottom-placeholder {
-  height: 120rpx;
   padding-bottom: var(--window-bottom);
 }
 

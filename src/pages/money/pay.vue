@@ -19,7 +19,7 @@
         </view>
         <text class="pay-methods__name">支付宝</text>
         <u-icon
-          :name="payType === 'alipay' ? 'checkbox-mark' : 'checkbox'"
+          :name="payType === 'alipay' ? 'checkmark-circle-fill' : 'checkmark-circle'"
           :size="20"
           :color="payType === 'alipay' ? '#E4393C' : '#C0C4CC'"
         />
@@ -34,7 +34,7 @@
         </view>
         <text class="pay-methods__name">微信支付</text>
         <u-icon
-          :name="payType === 'wechat' ? 'checkbox-mark' : 'checkbox'"
+          :name="payType === 'wechat' ? 'checkmark-circle-fill' : 'checkmark-circle'"
           :size="20"
           :color="payType === 'wechat' ? '#E4393C' : '#C0C4CC'"
         />
