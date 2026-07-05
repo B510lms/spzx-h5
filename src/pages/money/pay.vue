@@ -96,11 +96,9 @@ async function handlePay() {
   paying.value = true
   try {
     if (payType.value === 'alipay') {
-      const html = await submitAlipay(orderNo.value)
-      // 支付宝返回的是 HTML 表单，需要自动提交
       // #ifdef H5
+      const html = await submitAlipay(orderNo.value)
       payFormHtml.value = html
-      // 自动提交表单
       setTimeout(() => {
         const form = document.querySelector('form')
         if (form) form.submit()
@@ -109,6 +107,10 @@ async function handlePay() {
 
       // #ifdef MP-WEIXIN
       uni.showToast({ title: '请在小程序中完成支付', icon: 'none' })
+      // #endif
+
+      // #ifdef APP-PLUS
+      uni.showToast({ title: 'APP端支付功能开发中', icon: 'none' })
       // #endif
     } else {
       uni.showToast({ title: '暂仅支持支付宝支付', icon: 'none' })

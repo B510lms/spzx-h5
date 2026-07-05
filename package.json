@@ -7,6 +7,8 @@
     "build:h5": "uni build",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",
+    "dev:app": "uni -p app-plus",
+    "build:app": "uni build -p app-plus",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
