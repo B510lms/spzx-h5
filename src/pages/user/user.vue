@@ -120,7 +120,6 @@ function goOrderList(status?: number) {
   const url = status !== undefined
     ? `/pages/order/order?status=${status}`
     : '/pages/order/order'
-  console.log(url)
   uni.navigateTo({ url })
 }
 

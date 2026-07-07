@@ -242,7 +242,6 @@ async function matchSku() {
       // 处理可能没有 code:200 的情况（直接返回数据）
       if (skuInfo && skuInfo.productSku) {
         currentSku.value = skuInfo.productSku
-        console.log('匹配到的 SKU 信息:', currentSku.value)
       }
     } catch (e: any) {
         console.error('获取 SKU 信息失败:', e)

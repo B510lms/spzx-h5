@@ -188,7 +188,6 @@ onReachBottom(() => {
 })
 
 onLoad((options) => {
-  console.log(options)
   if (!userStore.isLogin) {
     toLogin()
     return
