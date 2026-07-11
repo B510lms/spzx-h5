@@ -58,6 +58,10 @@
           </view>
           <text>购物车</text>
         </view>
+        <view class="detail-bottom__action" @click="toggleCollect">
+          <u-icon :name="collected ? 'star-fill' : 'star'" size="22" :color="collected ? '#E4393C' : '#666'" />
+          <text>收藏</text>
+        </view>
       </view>
       <view class="detail-bottom__btns">
         <button class="btn-cart" @click="addToCart">加入购物车</button>
@@ -122,6 +126,8 @@ import { onLoad } from '@dcloudio/uni-app'
 import { getProductDetail } from '@/api/product'
 import { addToCart as addToCartApi } from '@/api/cart'
 import { buyNow as buyNowApi } from '@/api/order'
+import { addCollect, deleteCollect, isCollected } from '@/api/user/collect'
+import { addBrowseHistory } from '@/api/user/browse'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { formatPrice } from '@/utils/common'
@@ -176,6 +182,9 @@ const currentThumbImg = computed(() => {
 
 // 购物车数量
 const cartCount = computed(() => cartStore.totalCount)
+
+// 收藏状态
+const collected = ref<boolean>(false)
 
 // 规格弹窗
 const showSpec = ref<boolean>(false)
@@ -236,16 +245,19 @@ async function matchSku() {
 
   if (matchedSkuId) {
     selectedSkuId.value = String(matchedSkuId)
-    try {
-      // 调用 API 获取对应 SKU 的价格等信息
-      const skuInfo = await getProductDetail(matchedSkuId)
-      // 处理可能没有 code:200 的情况（直接返回数据）
-      if (skuInfo && skuInfo.productSku) {
-        currentSku.value = skuInfo.productSku
-      }
-    } catch (e: any) {
+    if (Number(matchedSkuId) !== Number(skuId.value)) {
+      try {
+        const skuInfo = await getProductDetail(Number(matchedSkuId))
+        if (skuInfo && skuInfo.productSku) {
+          currentSku.value = skuInfo.productSku
+        }
+      } catch (e: any) {
         console.error('获取 SKU 信息失败:', e)
+      }
+    } else {
+      currentSku.value = productSku.value
     }
+    checkCollectStatus()
   }
 }
 
@@ -314,6 +326,46 @@ function goCart() {
   uni.switchTab({ url: '/pages/cart/cart' })
 }
 
+// 收藏/取消收藏
+async function toggleCollect() {
+  if (!userStore.isLogin) {
+    toLogin()
+    return
+  }
+  
+  const targetSkuId = selectedSkuId.value || skuId.value
+  if (!targetSkuId) return
+  
+  try {
+    if (collected.value) {
+      await deleteCollect(Number(targetSkuId))
+      collected.value = false
+      uni.showToast({ title: '已取消收藏', icon: 'none' })
+    } else {
+      await addCollect(Number(targetSkuId))
+      collected.value = true
+      uni.showToast({ title: '收藏成功', icon: 'success' })
+    }
+  } catch (e) {
+    console.error('收藏操作失败:', e)
+  }
+}
+
+// 检查收藏状态
+async function checkCollectStatus() {
+  if (!userStore.isLogin) return
+  
+  const targetSkuId = selectedSkuId.value || skuId.value
+  if (!targetSkuId) return
+  
+  try {
+    const result = await isCollected(Number(targetSkuId))
+    collected.value = result || false
+  } catch (e) {
+    console.error('检查收藏状态失败:', e)
+  }
+}
+
 function formatSaleNum(num: number): string {
   if (num >= 10000) return (num / 10000).toFixed(1) + '万'
   return String(num)
@@ -337,6 +389,20 @@ async function loadDetail() {
     }
   } catch (e) {
     console.error('加载商品详情失败:', e)
+  }
+}
+
+// 添加浏览记录
+async function recordBrowseHistory() {
+  if (!userStore.isLogin) return
+  
+  const targetSkuId = selectedSkuId.value || skuId.value
+  if (!targetSkuId) return
+  
+  try {
+    await addBrowseHistory(Number(targetSkuId))
+  } catch (e) {
+    console.error('记录浏览历史失败:', e)
   }
 }
 
@@ -370,6 +436,7 @@ onLoad((options) => {
 onMounted(() => {
   if (userStore.isLogin) {
     cartStore.fetchCartList()
+    recordBrowseHistory()
   }
 })
 </script>

@@ -7,7 +7,7 @@
         class="goods-list__item"
       >
         <goods-card
-          :sku-id="item.id || item.skuId || 0"
+          :sku-id="item.skuId || item.id || 0"
           :title="item.skuName || item.name"
           :thumb-img="item.thumbImg || item.imgUrl"
           :sale-price="item.salePrice"

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "尚品甑选 - 电商小程序",
   "scripts": {
-    "dev:h5": "uni",
-    "build:h5": "uni build",
+    "dev": "uni",
+    "build": "uni build",
     "dev:mp-weixin": "uni -p mp-weixin",
     "build:mp-weixin": "uni build -p mp-weixin",
     "dev:app": "uni -p app-plus",
