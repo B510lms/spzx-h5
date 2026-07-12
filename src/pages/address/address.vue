@@ -227,6 +227,7 @@ async function loadAddress(id: string) {
       
       if (form.provinceCode) {
         const pIndex = provinces.value.findIndex(r => r.code === form.provinceCode)
+        console.log('省份索引:', pIndex)
         if (pIndex >= 0) {
           provinceIndex.value = pIndex
           provinceScrollId.value = 'p-' + pIndex
@@ -328,11 +329,11 @@ async function deleteAddress() {
   })
 }
 
-onLoad((options) => {
-  loadProvinces()
+onLoad(async (options) => {
+  await loadProvinces()
   if (options?.id) {
     isEdit.value = true
-    loadAddress(options.id)
+    await loadAddress(options.id)
   }
 })
 </script>
