@@ -223,7 +223,6 @@ async function loadAddress(id: string) {
       form.cityCode = data.cityCode || ''
       form.districtCode = data.districtCode || ''
       form.isDefault = data.isDefault === 1
-      form.area = data.fullAddress || ''
       
       if (form.provinceCode) {
         const pIndex = provinces.value.findIndex(r => r.code === form.provinceCode)
@@ -246,6 +245,12 @@ async function loadAddress(id: string) {
                   districtIndex.value = dIndex
                   districtScrollId.value = 'd-' + dIndex
                 }
+              }
+              const p = provinces.value.find(r => r.code === form.provinceCode)
+              const c = cities.value.find(r => r.code === form.cityCode)
+              const d = districts.value.find(r => r.code === form.districtCode)
+              if (p && c && d) {
+                form.area = `${p.name} ${c.name} ${d.name}`
               }
             }
           }
@@ -275,13 +280,18 @@ async function saveAddressHandle() {
     return
   }
 
+  const province = provinces.value.find(p => p.code === form.provinceCode)
+  const city = cities.value.find(c => c.code === form.cityCode)
+  const district = districts.value.find(d => d.code === form.districtCode)
+  const regionText = province && city && district ? `${province.name}${city.name}${district.name}` : ''
+  
   const addressData: AddressInfo = {
     id: form.id ? Number(form.id) : undefined,
     name: form.name,
     phone: form.phone,
     tagName: form.tagName,
     address: form.address,
-    fullAddress: form.fullAddress,
+    fullAddress: regionText + form.address,
     provinceCode: form.provinceCode,
     cityCode: form.cityCode,
     districtCode: form.districtCode,
