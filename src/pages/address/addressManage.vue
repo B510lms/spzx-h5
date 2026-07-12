@@ -16,7 +16,7 @@
             <text class="address-item__default" v-if="item.isDefault === 1">默认</text>
           </view>
           <text class="address-item__detail">
-            {{ item.fullAddress || (item.provinceCode + item.cityCode + item.districtCode + ' ' + item.address) }}
+            {{ item.fullAddress || ((item.provinceCode || '') + (item.cityCode || '') + (item.districtCode || '') + ' ' + (item.address || '')) }}
           </text>
         </view>
         <view class="address-item__actions">
@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { getAddressList } from '@/api/address'
+import { getAddressList, deleteAddress as deleteAddressApi } from '@/api/address'
 import type { AddressInfo } from '@/api/address/type'
 import { useUserStore } from '@/store/user'
 import NoData from '@/components/no-data/no-data.vue'
@@ -77,15 +77,19 @@ function editAddress(item: AddressInfo) {
   uni.navigateTo({ url: `/pages/address/address?id=${item.id}` })
 }
 
-function deleteAddress(item: AddressInfo) {
+async function deleteAddress(item: AddressInfo) {
   uni.showModal({
     title: '提示',
     content: '确定要删除该地址吗？',
-    success: (res) => {
-      if (res.confirm) {
-        // 删除逻辑
-        uni.showToast({ title: '已删除', icon: 'success' })
-        loadAddresses()
+    success: async (res) => {
+      if (res.confirm && item.id) {
+        try {
+          await deleteAddressApi(item.id)
+          uni.showToast({ title: '已删除', icon: 'success' })
+          loadAddresses()
+        } catch (e) {
+          console.error('删除地址失败:', e)
+        }
       }
     }
   })
