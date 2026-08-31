@@ -34,10 +34,7 @@ spzx-h5/
 ├── vite.config.ts              # Vite 配置（uni-app + auto-import + proxy + alias）
 ├── tsconfig.json               # TypeScript 配置
 ├── package.json                # 依赖与脚本
-├── .env                        # 公共环境变量
-├── .env.development            # 开发环境变量
-├── .env.test                   # 测试环境变量
-├── .env.production             # 生产环境变量
+├── .env                        # 环境变量（VITE_API_BASE_URL + VITE_APP_ENV）
 ├── .gitignore                  # Git 忽略规则
 ├── RENAME.md                   # 本架构文档
 │
@@ -77,6 +74,8 @@ api/
 │
 ├── user/                      # 用户模块
 │   ├── index.ts               # login, register, sendSms, getCurrentUserInfo
+│   ├── browse.ts              # addBrowseHistory, deleteBrowseHistory, deleteAllBrowseHistory, getBrowseHistoryList
+│   ├── collect.ts             # addCollect, deleteCollect, getCollectList, isCollected
 │   └── type.ts                # LoginParams, RegisterParams, LoginResponse, UserInfo
 │
 ├── cart/                      # 购物车模块
@@ -90,8 +89,11 @@ api/
 │   └── type.ts                # TradeVo, OrderItemVo, SubmitOrderParams, OrderInfo, AddressInfo
 │
 ├── address/                   # 地址模块
-│   ├── index.ts               # getAddressList, getAddress
+│   ├── index.ts               # getAddressList, getAddress, saveAddress, updateAddress, deleteAddress
 │   └── type.ts                # AddressInfo
+│
+├── region/                    # 地区模块
+│   └── index.ts               # getRegionByParentCode
 │
 └── pay/                       # 支付模块
     ├── index.ts               # submitAlipay
@@ -303,10 +305,7 @@ $u-info:    #909399
 ### 环境配置
 | 文件 | 用途 | VITE_API_BASE_URL |
 |------|------|-------------------|
-| `.env` | 公共变量（VITE_APP_TITLE） | — |
-| `.env.development` | 开发环境 | 空（走 Vite proxy → localhost:8500） |
-| `.env.test` | 测试环境 | 待配置 |
-| `.env.production` | 生产环境 | 待配置 |
+| `.env` | 公共环境变量（VITE_API_BASE_URL + VITE_APP_ENV） | http://localhost:8500 |
 
 Vite 根据运行命令自动加载对应 `.env.[mode]` 文件。
 
@@ -314,11 +313,12 @@ Vite 根据运行命令自动加载对应 `.env.[mode]` 文件。
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev:h5` | 启动 H5 开发服务器（默认 localhost:8080） |
-| `npm run build:h5` | 构建 H5 生产版本 |
-| `npm run build:h5:test` | 构建 H5 测试版本 |
+| `npm run dev` | 启动 H5 开发服务器（默认 localhost:8080） |
+| `npm run build` | 构建 H5 生产版本 |
 | `npm run dev:mp-weixin` | 启动微信小程序开发 |
 | `npm run build:mp-weixin` | 构建微信小程序 |
+| `npm run dev:app` | 启动 App 端开发 |
+| `npm run build:app` | 构建 App 端 |
 | `npm run type-check` | TypeScript 类型检查（vue-tsc --noEmit） |
 
 ---
