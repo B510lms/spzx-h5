@@ -77,7 +77,7 @@
     "title": "尚品甑选",
     "router": {
       "mode": "hash",
-      "base": "/"
+      "base": "/h5/"
     },
     "optimization": {
       "treeShaking": {
